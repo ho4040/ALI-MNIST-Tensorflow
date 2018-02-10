@@ -1,7 +1,8 @@
 
 # coding: utf-8
 
-# # ALI MNIST Tensorfle 3rd
+# # ALI MNIST Tensorfle 5th
+# 
 
 # In[1]:
 
@@ -86,7 +87,7 @@ def generator_reverse(x, reuse=False):
 
         batch_size = conv4.get_shape()[0].value
         reshaped = tf.reshape(conv4, [batch_size, -1])
-        g_r = tf.layers.dense(reshaped, z_size, name='d', activation=tf.nn.tanh)  
+        g_r = tf.layers.dense(reshaped, z_size, name='d', activation=None)  
         return g_r
     
     
@@ -95,9 +96,13 @@ def discriminator( x, z, reuse=False):
         
         initializer = tf.random_normal_initializer(mean=0, stddev=0.02)
         d_inputs = tf.convert_to_tensor(x)
+        
+        z = tf.layers.dense(z, 64*64, activation=None)
+        z = tf.reshape(z, (-1, 64, 64, 1))
+        z = tf.concat([d_inputs, z], 3)
 
         with tf.variable_scope('conv1'): # conv 1
-            conv1 = tf.layers.conv2d(d_inputs, 64, [5, 5], strides=(2, 2), padding='SAME', kernel_initializer=initializer)
+            conv1 = tf.layers.conv2d(z, 64, [5, 5], strides=(2, 2), padding='SAME', kernel_initializer=initializer)
             conv1 = tf.layers.batch_normalization(conv1, training=training)
             conv1 = tf.nn.leaky_relu(conv1) # shape (batch_size, 32, 32, 64)
 
@@ -173,8 +178,9 @@ with tf.control_dependencies(update_ops):
 
 fake_images = tf.reshape(x_fake, [-1, 64, 64, 1])
 reconstructed_images = tf.reshape(x_reconstructed, [-1, 64, 64, 1]) 
-tf.summary.image('fake_images', fake_images, 3)
-tf.summary.image('reconstructed_images', reconstructed_images, 3)
+tf.summary.image('fake_images', fake_images, 10)
+tf.summary.image('reconstructed_images', reconstructed_images, 10)
+tf.summary.image('sample_images', resized_x, 10)
 tf.summary.histogram('y_real', y_real)
 tf.summary.histogram('y_fake', y_fake)
 
@@ -184,10 +190,9 @@ tf.summary.histogram('y_fake', y_fake)
 
 mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
 train_set = (mnist.train.images - 0.5) / 0.5  # normalization; range: -1~1 from 0~1
-train_label = mnist.train.labels
 
 
-# In[ ]:
+# In[6]:
 
 
 sess = tf.InteractiveSession()
@@ -196,7 +201,7 @@ writer = tf.summary.FileWriter('./ali_dcgan_1st', sess.graph)
 merged = tf.summary.merge_all()
 
 
-# In[ ]:
+# In[7]:
 
 
 np.random.seed(int(time.time()))
@@ -235,3 +240,4 @@ for epoch in range(train_epoch):
             
         plt.title("epoch {}".format(epoch))
         plt.show()
+
