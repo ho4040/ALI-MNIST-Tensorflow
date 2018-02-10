@@ -218,7 +218,7 @@ for epoch in range(train_epoch):
         _summ = sess.run(merged, {x: x_data})
         writer.add_summary(_summ, epoch)
         
-        _fake_images, _reconstructed_images = sess.run([fake_images, reconstructed_images], {x: x_data})
+        _resized_x, _reconstructed_images = sess.run([resized_x, reconstructed_images], {x: x_data})
         
         plt.figure(figsize=(9,1))    
         for k in range(1, 8, 2):
@@ -228,11 +228,10 @@ for epoch in range(train_epoch):
             #print(imgIdx, graphIdx1, graphIdx2)
             plt.subplot(graphIdx1)
             plt.axis('off')
-            plt.imshow(np.reshape(_fake_images[imgIdx], [64,64]), cmap="gray")
+            plt.imshow(np.reshape(_resized_x[imgIdx], [64,64]), cmap="gray")
             plt.subplot(graphIdx2)
             plt.axis('off')
             plt.imshow(np.reshape(_reconstructed_images[imgIdx], [64,64]), cmap="gray")
             
         plt.title("epoch {}".format(epoch))
         plt.show()
-
